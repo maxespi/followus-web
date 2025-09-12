@@ -11,8 +11,8 @@ npx tailwindcss init -p
 # 3. Git y GitHub
 git init
 git add .
-git commit -m "Initial commit: trackminero-web application setup"
-git remote add origin https://github.com/tu-usuario/trackminero-web.git
+git commit -m "Initial commit: followus-web application setup"
+git remote add origin https://github.com/maxespi/followus-web.git
 git branch -M main
 git push -u origin main
 
