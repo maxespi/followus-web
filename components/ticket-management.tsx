@@ -1,304 +1,402 @@
-"use client"
+// components/ticket-management.tsx
+'use client'
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TicketDetails } from "@/components/ticket-details"
-import { NewTicketDialog } from "@/components/new-ticket-dialog"
-import { Search, Filter, Plus, MessageSquare, Mail, Phone, Clock, AlertTriangle } from "lucide-react"
+import { useState, useMemo } from 'react'
+import { useTranslation } from '@/context/AppContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Plus,
+  Search,
+  Filter,
+  Clock,
+  AlertTriangle,
+  Mail,
+  MessageSquare,
+  Phone,
+  Share,
+  Globe,
+  User,
+  Calendar
+} from 'lucide-react'
+import { mockTickets, mockUsers } from '@/lib/mock-data'
+import { Ticket, TicketFilters } from '@/lib/types'
+import { TicketDetails } from '@/components/ticket-details'
+import { NewTicketDialog } from '@/components/new-ticket-dialog'
 
-const mockTickets = [
-  {
-    id: "TK-001",
-    title: "Payment issue - Order #1234",
-    customer: "María González",
-    email: "maria@email.com",
-    channel: "whatsapp",
-    priority: "high",
-    status: "open",
-    category: "billing",
-    assignee: "Carlos Agent",
-    created: "2024-01-15T10:30:00Z",
-    updated: "2024-01-15T14:20:00Z",
-    sla: "2h remaining",
-    description: "Customer reports payment was charged but order shows as unpaid in system.",
-  },
-  {
-    id: "TK-002",
-    title: "Product warranty inquiry",
-    customer: "Carlos Ruiz",
-    email: "carlos@email.com",
-    channel: "email",
-    priority: "medium",
-    status: "in-progress",
-    category: "warranty",
-    assignee: "Ana Support",
-    created: "2024-01-15T09:15:00Z",
-    updated: "2024-01-15T13:45:00Z",
-    sla: "4h remaining",
-    description: "Customer asking about warranty coverage for product purchased 6 months ago.",
-  },
-  {
-    id: "TK-003",
-    title: "Shipping status update",
-    customer: "Ana López",
-    email: "ana@email.com",
-    channel: "webchat",
-    priority: "low",
-    status: "resolved",
-    category: "shipping",
-    assignee: "Luis Agent",
-    created: "2024-01-14T16:20:00Z",
-    updated: "2024-01-15T08:30:00Z",
-    sla: "Completed",
-    description: "Customer requesting tracking information for recent order.",
-  },
-]
+// Funciones helper para iconos y colores
+const getChannelIcon = (channel: string) => {
+  const iconMap = {
+    email: <Mail className="h-4 w-4" />,
+    chat: <MessageSquare className="h-4 w-4" />,
+    phone: <Phone className="h-4 w-4" />,
+    social: <Share className="h-4 w-4" />,
+    web: <Globe className="h-4 w-4" />
+  }
+  return iconMap[channel as keyof typeof iconMap] || <Mail className="h-4 w-4" />
+}
+
+const getPriorityColor = (priority: string) => {
+  const colorMap = {
+    urgent: 'destructive',
+    high: 'destructive',
+    medium: 'default',
+    low: 'secondary'
+  }
+  return colorMap[priority as keyof typeof colorMap] || 'default'
+}
+
+const getStatusColor = (status: string) => {
+  const colorMap = {
+    open: 'destructive',
+    'in-progress': 'default',
+    waiting: 'secondary',
+    resolved: 'secondary',
+    closed: 'outline'
+  }
+  return colorMap[status as keyof typeof colorMap] || 'default'
+}
 
 export function TicketManagement() {
-  const [selectedTicket, setSelectedTicket] = useState(mockTickets[0])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [channelFilter, setChannelFilter] = useState("all")
-  const [priorityFilter, setPriorityFilter] = useState("all")
+  const { t } = useTranslation()
+
+  // Estados locales
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(mockTickets[0])
   const [showNewTicket, setShowNewTicket] = useState(false)
+  const [activeTab, setActiveTab] = useState('list')
 
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case "whatsapp":
-        return <MessageSquare className="h-4 w-4" />
-      case "email":
-        return <Mail className="h-4 w-4" />
-      case "webchat":
-        return <Phone className="h-4 w-4" />
-      default:
-        return <MessageSquare className="h-4 w-4" />
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "destructive"
-      case "medium":
-        return "secondary"
-      case "low":
-        return "outline"
-      default:
-        return "outline"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "destructive"
-      case "in-progress":
-        return "secondary"
-      case "resolved":
-        return "default"
-      default:
-        return "outline"
-    }
-  }
-
-  const filteredTickets = mockTickets.filter((ticket) => {
-    const matchesSearch =
-      ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.id.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter
-    const matchesChannel = channelFilter === "all" || ticket.channel === channelFilter
-    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter
-
-    return matchesSearch && matchesStatus && matchesChannel && matchesPriority
+  // Estados de filtros
+  const [filters, setFilters] = useState<TicketFilters>({
+    search: '',
+    status: [],
+    priority: [],
+    channel: [],
+    assignee: []
   })
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-balance">Ticket Management</h1>
-          <p className="text-muted-foreground text-pretty">
-            Manage and track customer support tickets across all channels
-          </p>
-        </div>
-        <Button onClick={() => setShowNewTicket(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Ticket
-        </Button>
-      </div>
+  // Tickets filtrados
+  const filteredTickets = useMemo(() => {
+    return mockTickets.filter((ticket) => {
+      // Filtro de búsqueda
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase()
+        const matchesSearch =
+            ticket.id.toLowerCase().includes(searchLower) ||
+            ticket.title.toLowerCase().includes(searchLower) ||
+            ticket.customer.name.toLowerCase().includes(searchLower) ||
+            ticket.customer.email.toLowerCase().includes(searchLower)
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-64">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search tickets, customers, or IDs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+        if (!matchesSearch) return false
+      }
+
+      // Filtros de estado
+      if (filters.status && filters.status.length > 0 && !filters.status.includes(ticket.status)) {
+        return false
+      }
+
+      // Filtros de prioridad
+      if (filters.priority && filters.priority.length > 0 && !filters.priority.includes(ticket.priority)) {
+        return false
+      }
+
+      // Filtros de canal
+      if (filters.channel && filters.channel.length > 0 && !filters.channel.includes(ticket.channel)) {
+        return false
+      }
+
+      // Filtros de asignado
+      if (filters.assignee && filters.assignee.length > 0 && ticket.assignee && !filters.assignee.includes(ticket.assignee.id)) {
+        return false
+      }
+
+      return true
+    })
+  }, [filters])
+
+  // Manejadores de eventos
+  const handleSearchChange = (value: string) => {
+    setFilters(prev => ({ ...prev, search: value }))
+  }
+
+  const handleFilterChange = (key: keyof TicketFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value === 'all' ? [] : [value] }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      status: [],
+      priority: [],
+      channel: [],
+      assignee: []
+    })
+  }
+
+  // Formatear tiempo relativo
+  const formatRelativeTime = (date: Date) => {
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffHours < 1) return 'Hace menos de 1h'
+    if (diffHours < 24) return `Hace ${diffHours}h`
+    if (diffDays === 1) return 'Ayer'
+    return `Hace ${diffDays} días`
+  }
+
+  return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">{t('tickets.title')}</h1>
+            <p className="text-muted-foreground">
+              {t('tickets.subtitle')}
+            </p>
+          </div>
+          <Button onClick={() => setShowNewTicket(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            {t('tickets.newTicket')}
+          </Button>
+        </div>
+
+        {/* Filtros y Búsqueda */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              {t('tickets.filters')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+              {/* Búsqueda */}
+              <div className="lg:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                      placeholder={t('tickets.search')}
+                      value={filters.search}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro de Estado */}
+              <Select onValueChange={(value) => handleFilterChange('status', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('tickets.status')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
+                  <SelectItem value="open">{t('tickets.open')}</SelectItem>
+                  <SelectItem value="in-progress">{t('tickets.in-progress')}</SelectItem>
+                  <SelectItem value="waiting">{t('tickets.waiting')}</SelectItem>
+                  <SelectItem value="resolved">{t('tickets.resolved')}</SelectItem>
+                  <SelectItem value="closed">{t('tickets.closed')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de Prioridad */}
+              <Select onValueChange={(value) => handleFilterChange('priority', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('tickets.priority')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
+                  <SelectItem value="urgent">{t('tickets.urgent')}</SelectItem>
+                  <SelectItem value="high">{t('tickets.high')}</SelectItem>
+                  <SelectItem value="medium">{t('tickets.medium')}</SelectItem>
+                  <SelectItem value="low">{t('tickets.low')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de Canal */}
+              <Select onValueChange={(value) => handleFilterChange('channel', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('tickets.channel')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
+                  <SelectItem value="email">{t('tickets.email')}</SelectItem>
+                  <SelectItem value="chat">{t('tickets.chat')}</SelectItem>
+                  <SelectItem value="phone">{t('tickets.phone')}</SelectItem>
+                  <SelectItem value="social">{t('tickets.social')}</SelectItem>
+                  <SelectItem value="web">{t('tickets.web')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Botón limpiar filtros */}
+              <Button variant="outline" onClick={clearFilters}>
+                {t('common.clear')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs de Vista */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="list">{t('tickets.listView')}</TabsTrigger>
+            <TabsTrigger value="kanban">{t('tickets.kanbanBoard')}</TabsTrigger>
+            <TabsTrigger value="details">{t('tickets.ticketDetails')}</TabsTrigger>
+          </TabsList>
+
+          {/* Vista de Lista */}
+          <TabsContent value="list" className="space-y-4">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Lista de Tickets - Ocupa más espacio en pantallas grandes */}
+              <div className="xl:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      {t('tickets.title')} ({filteredTickets.length})
+                    </CardTitle>
+                    <CardDescription>
+                      {filteredTickets.filter((t) => t.status === "open").length} {t('tickets.open')},{" "}
+                      {filteredTickets.filter((t) => t.status === "in-progress").length} {t('tickets.in-progress')},{" "}
+                      {filteredTickets.filter((t) => t.status === "resolved").length} {t('tickets.resolved')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[600px] pr-4">
+                      <div className="space-y-4">
+                        {filteredTickets.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              {t('common.noResults')}
+                            </div>
+                        ) : (
+                            filteredTickets.map((ticket) => (
+                                <div
+                                    key={ticket.id}
+                                    className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
+                                        selectedTicket?.id === ticket.id ? "bg-muted border-primary" : ""
+                                    }`}
+                                    onClick={() => setSelectedTicket(ticket)}
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="space-y-2 flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-mono text-sm text-muted-foreground">{ticket.id}</span>
+                                        {getChannelIcon(ticket.channel)}
+                                        <Badge variant={getPriorityColor(ticket.priority) as any}>
+                                          {t(`tickets.${ticket.priority}`)}
+                                        </Badge>
+                                        <Badge variant={getStatusColor(ticket.status) as any}>
+                                          {t(`tickets.${ticket.status}`)}
+                                        </Badge>
+                                      </div>
+                                      <h3 className="font-medium truncate pr-2">{ticket.title}</h3>
+                                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                        <div className="flex items-center gap-1 min-w-0">
+                                          <User className="h-3 w-3 flex-shrink-0" />
+                                          <span className="truncate">{ticket.customer.name}</span>
+                                        </div>
+                                        {ticket.assignee && (
+                                            <>
+                                              <span className="hidden sm:inline">•</span>
+                                              <span className="truncate hidden sm:inline">{ticket.assignee.name}</span>
+                                            </>
+                                        )}
+                                        <span className="hidden sm:inline">•</span>
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                          <Clock className="h-3 w-3" />
+                                          <span className="text-xs">{formatRelativeTime(ticket.updatedAt)}</span>
+                                        </div>
+                                        <span className="hidden md:inline">•</span>
+                                        <span className="flex items-center gap-1 text-xs flex-shrink-0 hidden md:flex">
+                                    <Calendar className="h-3 w-3" />
+                                          {ticket.sla}
+                                  </span>
+                                      </div>
+                                    </div>
+                                    {ticket.priority === "urgent" && (
+                                        <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 ml-2" />
+                                    )}
+                                  </div>
+                                </div>
+                            ))
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Panel de Detalles - Ahora responsivo */}
+              <div className="xl:col-span-1">
+                <div className="sticky top-6">
+                  <TicketDetails ticket={selectedTicket} />
+                </div>
               </div>
             </div>
+          </TabsContent>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={channelFilter} onValueChange={setChannelFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Channel" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Channels</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="webchat">Web Chat</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Ticket Tabs */}
-      <Tabs defaultValue="list" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="list">List View</TabsTrigger>
-          <TabsTrigger value="kanban">Kanban Board</TabsTrigger>
-          <TabsTrigger value="details">Ticket Details</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="list" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tickets ({filteredTickets.length})</CardTitle>
-                  <CardDescription>
-                    {filteredTickets.filter((t) => t.status === "open").length} open,{" "}
-                    {filteredTickets.filter((t) => t.status === "in-progress").length} in progress,{" "}
-                    {filteredTickets.filter((t) => t.status === "resolved").length} resolved
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {filteredTickets.map((ticket) => (
-                    <div
-                      key={ticket.id}
-                      className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
-                        selectedTicket?.id === ticket.id ? "bg-muted border-primary" : ""
-                      }`}
-                      onClick={() => setSelectedTicket(ticket)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm text-muted-foreground">{ticket.id}</span>
-                            {getChannelIcon(ticket.channel)}
-                            <Badge variant={getPriorityColor(ticket.priority) as any}>{ticket.priority}</Badge>
-                            <Badge variant={getStatusColor(ticket.status) as any}>{ticket.status}</Badge>
+          {/* Vista Kanban */}
+          <TabsContent value="kanban">
+            <ScrollArea className="w-full">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 min-w-max">
+                {["open", "in-progress", "waiting", "resolved", "closed"].map((status) => (
+                    <Card key={status} className="min-w-[280px]">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base capitalize">
+                          {t(`tickets.${status}`)}
+                        </CardTitle>
+                        <CardDescription>
+                          {filteredTickets.filter((t) => t.status === status).length} tickets
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ScrollArea className="h-[500px]">
+                          <div className="space-y-3">
+                            {filteredTickets
+                                .filter((ticket) => ticket.status === status)
+                                .map((ticket) => (
+                                    <div
+                                        key={ticket.id}
+                                        className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                        onClick={() => setSelectedTicket(ticket)}
+                                    >
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
+                                          {getChannelIcon(ticket.channel)}
+                                          <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
+                                            {t(`tickets.${ticket.priority}`)}
+                                          </Badge>
+                                        </div>
+                                        <h4 className="text-sm font-medium line-clamp-2">{ticket.title}</h4>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                          <span className="truncate flex-1">{ticket.customer.name}</span>
+                                          <span className="flex-shrink-0 ml-2">{formatRelativeTime(ticket.updatedAt)}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                ))}
                           </div>
-                          <h3 className="font-medium text-balance">{ticket.title}</h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>{ticket.customer}</span>
-                            <span>•</span>
-                            <span>{ticket.assignee}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {ticket.sla}
-                            </span>
-                          </div>
-                        </div>
-                        {ticket.priority === "high" && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
 
-            <div>
-              <TicketDetails ticket={selectedTicket} />
-            </div>
-          </div>
-        </TabsContent>
+          {/* Vista de Detalles */}
+          <TabsContent value="details">
+            <TicketDetails ticket={selectedTicket} expanded />
+          </TabsContent>
+        </Tabs>
 
-        <TabsContent value="kanban">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {["open", "in-progress", "resolved"].map((status) => (
-              <Card key={status}>
-                <CardHeader>
-                  <CardTitle className="capitalize">{status.replace("-", " ")}</CardTitle>
-                  <CardDescription>{filteredTickets.filter((t) => t.status === status).length} tickets</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {filteredTickets
-                    .filter((ticket) => ticket.status === status)
-                    .map((ticket) => (
-                      <div
-                        key={ticket.id}
-                        className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50"
-                        onClick={() => setSelectedTicket(ticket)}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
-                            {getChannelIcon(ticket.channel)}
-                            <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
-                              {ticket.priority}
-                            </Badge>
-                          </div>
-                          <h4 className="text-sm font-medium text-balance">{ticket.title}</h4>
-                          <p className="text-xs text-muted-foreground">{ticket.customer}</p>
-                        </div>
-                      </div>
-                    ))}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="details">
-          <TicketDetails ticket={selectedTicket} expanded />
-        </TabsContent>
-      </Tabs>
-
-      <NewTicketDialog open={showNewTicket} onOpenChange={setShowNewTicket} />
-    </div>
+        {/* Dialogo para nuevo ticket */}
+        <NewTicketDialog open={showNewTicket} onOpenChange={setShowNewTicket} />
+      </div>
   )
 }

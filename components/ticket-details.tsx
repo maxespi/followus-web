@@ -1,206 +1,323 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { MessageSquare, Mail, Phone, Clock, User, Tag, AlertTriangle, Send, Paperclip } from "lucide-react"
+// components/ticket-details.tsx
+'use client'
 
-interface Ticket {
-  id: string
-  title: string
-  customer: string
-  email: string
-  channel: string
-  priority: string
-  status: string
-  category: string
-  assignee: string
-  created: string
-  updated: string
-  sla: string
-  description: string
-}
+import { useState } from 'react'
+import { useTranslation } from '@/context/AppContext'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Clock,
+  User,
+  Calendar,
+  MessageSquare,
+  Mail,
+  Phone,
+  Share,
+  Globe,
+  Plus,
+  Send
+} from 'lucide-react'
+import { Ticket } from '@/lib/types'
 
 interface TicketDetailsProps {
-  ticket: Ticket
+  ticket: Ticket | null
   expanded?: boolean
 }
 
 export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) {
+  const { t } = useTranslation()
+  const [newMessage, setNewMessage] = useState('')
+
+  if (!ticket) {
+    return (
+        <Card className="h-fit">
+          <CardContent className="flex items-center justify-center h-32 sm:h-48">
+            <div className="text-center text-muted-foreground">
+              <MessageSquare className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-4 opacity-50" />
+              <p className="text-xs sm:text-sm">Selecciona un ticket para ver los detalles</p>
+            </div>
+          </CardContent>
+        </Card>
+    )
+  }
+
   const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case "whatsapp":
-        return <MessageSquare className="h-4 w-4" />
-      case "email":
-        return <Mail className="h-4 w-4" />
-      case "webchat":
-        return <Phone className="h-4 w-4" />
-      default:
-        return <MessageSquare className="h-4 w-4" />
+    const iconMap = {
+      email: <Mail className="h-4 w-4" />,
+      chat: <MessageSquare className="h-4 w-4" />,
+      phone: <Phone className="h-4 w-4" />,
+      social: <Share className="h-4 w-4" />,
+      web: <Globe className="h-4 w-4" />
     }
+    return iconMap[channel as keyof typeof iconMap] || <Mail className="h-4 w-4" />
   }
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "destructive"
-      case "medium":
-        return "secondary"
-      case "low":
-        return "outline"
-      default:
-        return "outline"
+    const colorMap = {
+      urgent: 'destructive',
+      high: 'destructive',
+      medium: 'default',
+      low: 'secondary'
     }
+    return colorMap[priority as keyof typeof colorMap] || 'default'
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "destructive"
-      case "in-progress":
-        return "secondary"
-      case "resolved":
-        return "default"
-      default:
-        return "outline"
+    const colorMap = {
+      open: 'destructive',
+      'in-progress': 'default',
+      waiting: 'secondary',
+      resolved: 'secondary',
+      closed: 'outline'
+    }
+    return colorMap[status as keyof typeof colorMap] || 'default'
+  }
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
+  }
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      // Aquí iría la lógica para enviar el mensaje
+      console.log('Enviando mensaje:', newMessage)
+      setNewMessage('')
     }
   }
 
   return (
-    <Card className={expanded ? "col-span-full" : ""}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <CardTitle className="text-balance">{ticket.title}</CardTitle>
-            <CardDescription className="flex items-center gap-2">
-              <span className="font-mono">{ticket.id}</span>
-              {getChannelIcon(ticket.channel)}
-              <span className="capitalize">{ticket.channel}</span>
-            </CardDescription>
-          </div>
-          {ticket.priority === "high" && <AlertTriangle className="h-5 w-5 text-destructive" />}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Status and Priority */}
-        <div className="flex flex-wrap gap-2">
-          <Badge variant={getStatusColor(ticket.status) as any}>{ticket.status}</Badge>
-          <Badge variant={getPriorityColor(ticket.priority) as any}>{ticket.priority} priority</Badge>
-          <Badge variant="outline">
-            <Tag className="mr-1 h-3 w-3" />
-            {ticket.category}
-          </Badge>
-        </div>
-
-        {/* Customer Info */}
-        <div className="space-y-3">
-          <h4 className="font-medium flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Customer Information
-          </h4>
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Name:</span>
-              <span>{ticket.customer}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email:</span>
-              <span>{ticket.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Assignee:</span>
-              <span>{ticket.assignee}</span>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Timeline */}
-        <div className="space-y-3">
-          <h4 className="font-medium flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Timeline & SLA
-          </h4>
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Created:</span>
-              <span>{new Date(ticket.created).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Last Updated:</span>
-              <span>{new Date(ticket.updated).toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">SLA Status:</span>
-              <span className={ticket.sla.includes("remaining") ? "text-orange-600" : "text-green-600"}>
-                {ticket.sla}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Description */}
-        <div className="space-y-3">
-          <h4 className="font-medium">Description</h4>
-          <p className="text-sm text-muted-foreground text-pretty">{ticket.description}</p>
-        </div>
-
-        {expanded && (
-          <>
-            <Separator />
-
-            {/* Quick Actions */}
+      <div className={`space-y-4 ${expanded ? 'max-w-4xl mx-auto' : ''}`}>
+        {/* Header del Ticket */}
+        <Card>
+          <CardHeader className="pb-3">
             <div className="space-y-3">
-              <h4 className="font-medium">Quick Actions</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Change Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Change Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-xs sm:text-sm text-muted-foreground">{ticket.id}</span>
+                {getChannelIcon(ticket.channel)}
+                <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
+                  {t(`tickets.${ticket.priority}`)}
+                </Badge>
+                <Badge variant={getStatusColor(ticket.status) as any} className="text-xs">
+                  {t(`tickets.${ticket.status}`)}
+                </Badge>
+              </div>
+              <div>
+                <CardTitle className={`${expanded ? 'text-xl sm:text-2xl' : 'text-sm sm:text-base'} leading-tight`}>
+                  {ticket.title}
+                </CardTitle>
+                {expanded && (
+                    <CardDescription className="mt-2 text-sm">
+                      {ticket.description}
+                    </CardDescription>
+                )}
               </div>
             </div>
+          </CardHeader>
 
-            <Separator />
+          {expanded && (
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Información del Cliente */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4" />
+                      Cliente
+                    </h4>
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={ticket.customer.avatar} />
+                        <AvatarFallback className="text-xs">
+                          {ticket.customer.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{ticket.customer.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{ticket.customer.email}</p>
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Response */}
-            <div className="space-y-3">
-              <h4 className="font-medium">Add Response</h4>
-              <Textarea placeholder="Type your response to the customer..." className="min-h-24" />
-              <div className="flex items-center justify-between">
-                <Button variant="outline" size="sm">
-                  <Paperclip className="mr-2 h-4 w-4" />
-                  Attach File
-                </Button>
-                <Button>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Response
-                </Button>
-              </div>
-            </div>
-          </>
+                  {/* Información de Asignación */}
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Asignado a</h4>
+                    {ticket.assignee ? (
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={ticket.assignee.avatar} />
+                            <AvatarFallback className="text-xs">
+                              {ticket.assignee.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">{ticket.assignee.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{ticket.assignee.email}</p>
+                          </div>
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground text-sm">Sin asignar</p>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Metadatos */}
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">Creado</p>
+                    <p className="font-medium">{formatDate(ticket.createdAt)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">SLA</p>
+                    <p className="font-medium">{ticket.sla}</p>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {ticket.tags && ticket.tags.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">Tags</p>
+                      <div className="flex flex-wrap gap-1">
+                        {ticket.tags.slice(0, 3).map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-xs py-0">
+                              {tag}
+                            </Badge>
+                        ))}
+                        {ticket.tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs py-0">
+                              +{ticket.tags.length - 3}
+                            </Badge>
+                        )}
+                      </div>
+                    </div>
+                )}
+              </CardContent>
+          )}
+        </Card>
+
+        {/* Conversación - Compacta para sidebar, expandida para view completa */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <MessageSquare className="h-4 w-4" />
+              Conversación ({ticket.messages.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {ticket.messages.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs">No hay mensajes</p>
+                </div>
+            ) : (
+                <ScrollArea className={expanded ? "h-[400px]" : "h-[200px]"}>
+                  <div className="space-y-3 pr-3">
+                    {ticket.messages.map((message) => (
+                        <div key={message.id} className="flex space-x-2">
+                          <Avatar className="h-6 w-6 mt-1">
+                            <AvatarImage src={message.sender.avatar} />
+                            <AvatarFallback className="text-xs">
+                              {message.sender.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <p className="font-medium text-xs truncate">{message.sender.name}</p>
+                              <Badge variant="outline" className="text-xs py-0">
+                                {message.sender.role}
+                              </Badge>
+                            </div>
+                            <div className="bg-muted/50 rounded-lg p-2">
+                              <p className="text-xs leading-relaxed break-words">{message.content}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(message.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+            )}
+
+            {/* Nueva respuesta - Solo en vista expandida */}
+            {expanded && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-3">
+                    <Textarea
+                        placeholder="Escribe tu respuesta..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="min-h-[80px] text-sm"
+                    />
+                    <div className="flex justify-between">
+                      <Button variant="outline" size="sm">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Adjuntar
+                      </Button>
+                      <Button onClick={handleSendMessage} disabled={!newMessage.trim()} size="sm">
+                        <Send className="mr-2 h-4 w-4" />
+                        Enviar
+                      </Button>
+                    </div>
+                  </div>
+                </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Acciones - Solo para vista compacta del sidebar */}
+        {!expanded && (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    Asignar
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    Resolver
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
         )}
-      </CardContent>
-    </Card>
+
+        {/* Acciones expandidas */}
+        {expanded && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Acciones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline">
+                    {t('tickets.assign')}
+                  </Button>
+                  <Button variant="outline">
+                    {t('tickets.escalate')}
+                  </Button>
+                  <Button variant="outline">
+                    {t('tickets.resolve')}
+                  </Button>
+                  <Button variant="outline">
+                    {t('tickets.close')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+        )}
+      </div>
   )
 }

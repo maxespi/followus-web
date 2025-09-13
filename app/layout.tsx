@@ -1,28 +1,34 @@
-import type React from "react"
-import type { Metadata } from "next"
+// app/layout.tsx
+import type { Metadata } from 'next'
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
-import "./globals.css"
+import './globals.css'
+import { AppProvider } from '@/context/AppContext'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
-  title: "FollowUS - Customer Support Portal",
-  description: "Unified customer support portal for managing tickets across multiple channels",
-  generator: "v0.app",
+    title: 'FollowUS - Customer Support Platform',
+    description: 'Modern customer support and helpdesk management system',
 }
 
 export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>{children}</Suspense>
+                                       children,
+                                   }: {
+    children: React.ReactNode
+}) {
+    return (
+        <html lang="en" suppressHydrationWarning>
+        <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-screen bg-background antialiased`}>
+        <AppProvider>
+            <Suspense fallback={null}>
+                {children}
+            </Suspense>
+            <Toaster />
+        </AppProvider>
         <Analytics />
-      </body>
-    </html>
-  )
+        </body>
+        </html>
+    )
 }

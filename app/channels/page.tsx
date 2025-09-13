@@ -1,5 +1,11 @@
-import { ChannelManagement } from "@/components/channel-management"
+// app/channels/page.tsx
+import { MainLayout } from '@/components/main-layout'
+import { ChannelManagement } from '@/components/channel-management'
 
 export default function ChannelsPage() {
-  return <ChannelManagement />
+  return (
+      <MainLayout>
+        <ChannelManagement />
+      </MainLayout>
+  )
 }
