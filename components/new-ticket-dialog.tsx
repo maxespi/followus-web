@@ -46,7 +46,7 @@ export function NewTicketDialog({ open, onOpenChange }: NewTicketDialogProps) {
     }
 
     // Aquí iría la lógica para crear el ticket
-    console.log('Creando ticket:', formData)
+    // TODO: Implementar creación real de ticket
 
     // Cerrar dialog y limpiar form
     onOpenChange(false)

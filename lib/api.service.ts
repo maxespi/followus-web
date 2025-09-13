@@ -49,10 +49,10 @@ class ApiService {
       this.baseUrl = defaultUrl || 'https://localhost/api'
     }
 
-    console.log('API Service initialized with URL:', this.baseUrl)
+    // API Service initialized with URL: ${this.baseUrl}
   }
 
-  private async makeRequest<T>(
+  async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
@@ -75,13 +75,8 @@ class ApiService {
       headers: defaultHeaders,
     }
 
-    console.log(`Making ${options.method || 'GET'} request to:`, url)
-
     try {
       const response = await fetch(url, config)
-
-      console.log('Response status:', response.status)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
 
       // Handle different response types
       let data: any
@@ -92,8 +87,6 @@ class ApiService {
       } else {
         data = await response.text()
       }
-
-      console.log('Response data:', data)
 
       if (!response.ok) {
         // Handle specific HTTP error codes
@@ -129,7 +122,10 @@ class ApiService {
         }
       }
     } catch (error) {
-      console.error('API Request failed:', error)
+      // Solo log de errores críticos
+      if (endpoint.includes('/tasks/')) {
+        console.error('❌ API Request failed:', error)
+      }
 
       // Handle specific error types
       if (error instanceof TypeError) {

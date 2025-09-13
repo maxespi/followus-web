@@ -22,7 +22,8 @@ import {
   Plus,
   Send
 } from 'lucide-react'
-import { Ticket } from '@/lib/types'
+import { Ticket } from '@/lib/tasks.service'
+import { formatDate } from '@/lib/date-utils'
 
 interface TicketDetailsProps {
   ticket: Ticket | null
@@ -78,20 +79,11 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
     return colorMap[status as keyof typeof colorMap] || 'default'
   }
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date)
-  }
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       // Aquí iría la lógica para enviar el mensaje
-      console.log('Enviando mensaje:', newMessage)
+      // TODO: Implementar envío real de mensaje
       setNewMessage('')
     }
   }
@@ -136,14 +128,13 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                     </h4>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={ticket.customer.avatar} />
                         <AvatarFallback className="text-xs">
-                          {ticket.customer.name.split(' ').map(n => n[0]).join('')}
+                          {ticket.creator.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{ticket.customer.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{ticket.customer.email}</p>
+                        <p className="font-medium text-sm truncate">{ticket.creator.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{ticket.creator.email}</p>
                       </div>
                     </div>
                   </div>
@@ -151,17 +142,16 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                   {/* Información de Asignación */}
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Asignado a</h4>
-                    {ticket.assignee ? (
+                    {ticket.assignedTo ? (
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={ticket.assignee.avatar} />
                             <AvatarFallback className="text-xs">
-                              {ticket.assignee.name.split(' ').map(n => n[0]).join('')}
+                              {ticket.assignedTo.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm truncate">{ticket.assignee.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{ticket.assignee.email}</p>
+                            <p className="font-medium text-sm truncate">{ticket.assignedTo.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{ticket.assignedTo.role || 'Agente'}</p>
                           </div>
                         </div>
                     ) : (
@@ -179,8 +169,8 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                     <p className="font-medium">{formatDate(ticket.createdAt)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">SLA</p>
-                    <p className="font-medium">{ticket.sla}</p>
+                    <p className="text-muted-foreground">Categoría</p>
+                    <p className="font-medium">{ticket.category || 'General'}</p>
                   </div>
                 </div>
 
@@ -226,16 +216,15 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                     {ticket.messages.map((message) => (
                         <div key={message.id} className="flex space-x-2">
                           <Avatar className="h-6 w-6 mt-1">
-                            <AvatarImage src={message.sender.avatar} />
                             <AvatarFallback className="text-xs">
-                              {message.sender.name.split(' ').map(n => n[0]).join('')}
+                              {message.author.name.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0 space-y-1">
                             <div className="flex items-center space-x-2">
-                              <p className="font-medium text-xs truncate">{message.sender.name}</p>
+                              <p className="font-medium text-xs truncate">{message.author.name}</p>
                               <Badge variant="outline" className="text-xs py-0">
-                                {message.sender.role}
+                                {message.isInternal ? 'Interno' : 'Cliente'}
                               </Badge>
                             </div>
                             <div className="bg-muted/50 rounded-lg p-2">
@@ -244,6 +233,15 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                             <p className="text-xs text-muted-foreground">
                               {formatDate(message.createdAt)}
                             </p>
+                            {message.reactions && message.reactions.length > 0 && (
+                              <div className="flex gap-1 mt-1">
+                                {message.reactions.map((reaction) => (
+                                  <span key={reaction.id} className="text-xs bg-muted rounded px-1">
+                                    {reaction.type}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                     ))}

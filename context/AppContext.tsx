@@ -91,12 +91,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Acciones de conveniencia
     const setTheme = (theme: ThemeMode) => {
-        console.log('Setting theme to:', theme) // Debug
         dispatch({ type: 'SET_THEME', payload: theme })
     }
 
     const setLanguage = (language: Language) => {
-        console.log('Setting language to:', language) // Debug
         dispatch({ type: 'SET_LANGUAGE', payload: language })
     }
 
@@ -169,7 +167,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
         }
 
-        console.log('Applied theme:', state.theme, 'Dark class:', root.classList.contains('dark')) // Debug
+        // Applied theme: ${state.theme}
     }, [state.theme])
 
     // Escuchar cambios del tema del sistema
@@ -191,10 +189,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     }, [state.theme])
 
-    // Debug: Log state changes
-    useEffect(() => {
-        console.log('App state changed:', state)
-    }, [state])
+    // App state management
 
     const contextValue: AppContextType = {
         state,
@@ -243,5 +238,16 @@ export function useSidebar() {
         collapsed: state.sidebarCollapsed,
         toggle: toggleSidebar,
         setCollapsed: setSidebarCollapsed
+    }
+}
+
+// Hook específico para autenticación
+export function useAuth() {
+    const { state, login, logout } = useApp()
+    return {
+        isAuthenticated: state.isAuthenticated,
+        user: state.user,
+        login,
+        logout
     }
 }

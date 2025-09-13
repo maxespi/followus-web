@@ -1,7 +1,7 @@
 // components/dashboard-overview.tsx
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from '@/context/AppContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +21,10 @@ import {
   Activity,
   RefreshCw
 } from 'lucide-react'
-import { mockDashboardMetrics, mockTickets, mockUsers } from '@/lib/mock-data'
+import { tasksService, Ticket } from '@/lib/tasks.service'
+import { useAuth } from '@/context/AppContext'
+import { formatRelativeTime } from '@/lib/date-utils'
+import { useTicketMetrics } from '@/hooks/use-ticket-metrics'
 
 // Componente de métrica individual
 interface MetricCardProps {
@@ -111,71 +114,75 @@ function SimpleChart({ data, title, type = 'bar' }: { data: Record<string, numbe
 
 export function DashboardOverview() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [refreshing, setRefreshing] = useState(false)
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Calcular métricas en tiempo real basado en los datos mock
-  const metrics = useMemo(() => {
-    const openTickets = mockTickets.filter(t => t.status === 'open').length
-    const inProgressTickets = mockTickets.filter(t => t.status === 'in-progress').length
-    const resolvedToday = mockTickets.filter(t => {
-      const today = new Date()
-      const ticketDate = new Date(t.updatedAt)
-      return t.status === 'resolved' &&
-          ticketDate.toDateString() === today.toDateString()
-    }).length
+  // Hook centralizado para métricas (Single Source of Truth)
+  const metrics = useTicketMetrics(tickets)
 
-    const urgentTickets = mockTickets.filter(t => t.priority === 'urgent' && t.status !== 'resolved').length
-    const activeAgents = mockUsers.filter(u => u.role === 'agent' && u.status === 'online').length
+  // Cargar datos reales del backend
+  const loadDashboardData = async () => {
+    if (!user?.id) return
 
-    // Cálculo promedio de tiempo de respuesta (simulado)
-    const avgResponseHours = 1.8
-
-    // Score de satisfacción (simulado)
-    const satisfactionScore = 4.3
-
-    return {
-      totalTickets: mockTickets.length,
-      openTickets,
-      inProgressTickets,
-      resolvedToday,
-      urgentTickets,
-      avgResponseTime: avgResponseHours,
-      satisfactionScore,
-      activeAgents,
-      pendingTickets: openTickets + inProgressTickets,
-      escalatedTickets: urgentTickets
+    try {
+      setError(null)
+      const userTasks = await tasksService.getUserTasks(Number(user.id))
+      setTickets(userTasks)
+    } catch (err) {
+      console.error('❌ Error cargando dashboard:', err)
+      setError('Error al cargar los datos del dashboard')
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
 
-  // Datos para gráficos
-  const ticketsByChannel = useMemo(() => {
-    return mockTickets.reduce((acc, ticket) => {
-      acc[ticket.channel] = (acc[ticket.channel] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  }, [])
+  useEffect(() => {
+    loadDashboardData()
+  }, [user?.id])
 
-  const ticketsByPriority = useMemo(() => {
-    return mockTickets.reduce((acc, ticket) => {
-      acc[ticket.priority] = (acc[ticket.priority] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  }, [])
+  // Las métricas ahora se calculan automáticamente en el hook centralizado
 
-  const ticketsByStatus = useMemo(() => {
-    return mockTickets.reduce((acc, ticket) => {
-      acc[ticket.status] = (acc[ticket.status] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  }, [])
+  // Datos para gráficos basados en datos reales
+  // Los datos para gráficos ahora vienen del hook centralizado
 
-  // Actividad reciente calculada
+  // Actividad reciente basada en datos reales (comentarios y actualizaciones)
   const recentActivity = useMemo(() => {
-    return mockDashboardMetrics.recentActivity.map(activity => ({
-      ...activity,
-      timeAgo: getTimeAgo(activity.timestamp)
-    }))
-  }, [])
+    const activities = []
+
+    tickets.forEach(ticket => {
+      // Agregar actividad de creación de ticket
+      activities.push({
+        id: `ticket-${ticket.id}-created`,
+        description: `Ticket "${ticket.title}" fue creado`,
+        user: {
+          name: ticket.creator.name
+        },
+        timestamp: new Date(ticket.createdAt),
+        timeAgo: getTimeAgo(new Date(ticket.createdAt))
+      })
+
+      // Agregar actividad de mensajes/comentarios recientes
+      ticket.messages.slice(-2).forEach(message => {
+        activities.push({
+          id: `message-${message.id}`,
+          description: `Nuevo comentario en "${ticket.title}"`,
+          user: {
+            name: message.author.name
+          },
+          timestamp: new Date(message.createdAt),
+          timeAgo: getTimeAgo(new Date(message.createdAt))
+        })
+      })
+    })
+
+    // Ordenar por timestamp descendente y tomar las 10 más recientes
+    return activities
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 10)
+  }, [tickets])
 
   function getTimeAgo(date: Date): string {
     const now = new Date()
@@ -191,9 +198,29 @@ export function DashboardOverview() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    // Simular carga
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await loadDashboardData()
     setRefreshing(false)
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
+            <p className="text-muted-foreground text-red-500">{error}</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -203,16 +230,16 @@ export function DashboardOverview() {
           <div>
             <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground">
-              {t('dashboard.subtitle')}
+              {loading ? 'Cargando datos...' : t('dashboard.subtitle')}
             </p>
           </div>
           <Button
               variant="outline"
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={refreshing || loading}
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+            <RefreshCw className={`mr-2 h-4 w-4 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
+            {loading ? 'Cargando...' : 'Actualizar'}
           </Button>
         </div>
 
@@ -238,19 +265,19 @@ export function DashboardOverview() {
 
           <MetricCard
               title={t('dashboard.resolvedToday')}
-              value={metrics.resolvedToday}
-              trend="up"
-              trendValue="+23%"
-              description="vs ayer"
+              value={`${metrics.percentages.resolved}%`}
+              trend={metrics.resolvedToday > 0 ? "up" : "stable"}
+              trendValue={metrics.resolvedToday > 0 ? `+${metrics.resolvedToday} hoy` : "0 hoy"}
+              description={`${metrics.resolvedTickets} resueltos`}
               icon={<CheckCircle className="h-4 w-4" />}
           />
 
           <MetricCard
               title={t('dashboard.avgResponseTime')}
-              value={`${metrics.avgResponseTime}h`}
-              trend="down"
-              trendValue="-15min"
-              description="mejora"
+              value={Math.round(metrics.avgResponseTime * 10) / 10}
+              trend={metrics.percentages.responseTimeVariation < 0 ? "up" : metrics.percentages.responseTimeVariation > 0 ? "down" : "stable"}
+              trendValue={metrics.percentages.responseTimeVariation !== 0 ? `${metrics.percentages.responseTimeVariation > 0 ? '↑' : '↓'}${Math.abs(metrics.percentages.responseTimeVariation).toFixed(1)}%` : "→ 0%"}
+              description={`${Math.round(metrics.avgResponseTime)}h promedio`}
               icon={<Clock className="h-4 w-4" />}
           />
         </div>
@@ -258,18 +285,18 @@ export function DashboardOverview() {
         {/* Métricas Secundarias */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
-              title={t('dashboard.satisfactionScore')}
-              value={metrics.satisfactionScore}
-              trend="up"
-              trendValue="+0.2"
-              description="de 5.0"
-              icon={<Star className="h-4 w-4" />}
+              title={"Tickets Urgentes"}
+              value={`${metrics.percentages.urgent}%`}
+              trend={metrics.percentages.urgent > 10 ? "down" : "stable"}
+              trendValue={metrics.percentages.urgent > 10 ? "Atención requerida" : "Bajo control"}
+              description={`${metrics.urgentTickets} urgentes`}
+              icon={<AlertTriangle className="h-4 w-4" />}
           />
 
           <MetricCard
               title={t('dashboard.activeAgents')}
               value={metrics.activeAgents}
-              description="de 15 total"
+              description={`de ${metrics.totalParticipants || metrics.activeAgents} total`}
               icon={<Users className="h-4 w-4" />}
           />
 
@@ -282,8 +309,8 @@ export function DashboardOverview() {
           />
 
           <MetricCard
-              title={t('dashboard.escalatedTickets')}
-              value={metrics.escalatedTickets}
+              title={"Tickets Sin Asignar"}
+              value={metrics.unassignedTickets}
               trend={metrics.escalatedTickets > 0 ? "up" : "stable"}
               trendValue={metrics.escalatedTickets > 0 ? "Atención" : "Normal"}
               icon={<AlertTriangle className="h-4 w-4" />}
@@ -293,15 +320,15 @@ export function DashboardOverview() {
 
         {/* Gráficos y Actividad */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Tickets por Canal */}
+          {/* Tickets por Categoría */}
           <SimpleChart
-              data={ticketsByChannel}
-              title={t('dashboard.ticketsByChannel')}
+              data={metrics.ticketsByCategory}
+              title="Tickets por Categoría"
           />
 
           {/* Tickets por Prioridad */}
           <SimpleChart
-              data={ticketsByPriority}
+              data={metrics.ticketsByPriority}
               title={t('dashboard.ticketsByPriority')}
           />
 
@@ -341,7 +368,7 @@ export function DashboardOverview() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {Object.entries(ticketsByStatus).map(([status, count]) => (
+              {Object.entries(metrics.ticketsByStatus).map(([status, count]) => (
                   <div key={status} className="text-center space-y-2">
                     <div className="text-2xl font-bold">{count}</div>
                     <div className="text-sm text-muted-foreground capitalize">

@@ -66,6 +66,8 @@ export const esTranslations: Translations = {
         listView: 'Vista de Lista',
         kanbanBoard: 'Tablero Kanban',
         ticketDetails: 'Detalles del Ticket',
+        in_progress: 'En progreso',
+        pending: 'Pendientes',
 
         // Estados
         open: 'Abierto',
@@ -247,6 +249,8 @@ export const enTranslations: Translations = {
         listView: 'List View',
         kanbanBoard: 'Kanban Board',
         ticketDetails: 'Ticket Details',
+        in_progress: 'Inprogress',
+        pending: 'Pending',
 
         // Status
         open: 'Open',
