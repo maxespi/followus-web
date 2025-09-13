@@ -10,11 +10,17 @@ export interface AppState {
     theme: ThemeMode
     language: Language
     sidebarCollapsed: boolean
+    isAuthenticated: boolean
     user: {
         id: string
         name: string
         email: string
         role: string
+        empresas?: Array<{
+            id: number
+            nombre: string
+        }>
+        rasgosDistintivos?: string
     } | null
 }
 
@@ -25,6 +31,7 @@ export type AppAction =
     | { type: 'TOGGLE_SIDEBAR' }
     | { type: 'SET_SIDEBAR_COLLAPSED'; payload: boolean }
     | { type: 'SET_USER'; payload: AppState['user'] }
+    | { type: 'LOGIN'; payload: AppState['user'] }
     | { type: 'LOGOUT' }
 
 // Estado inicial
@@ -32,12 +39,8 @@ const initialState: AppState = {
     theme: 'light',
     language: 'es',
     sidebarCollapsed: false,
-    user: {
-        id: 'user-1',
-        name: 'Ana García',
-        email: 'ana.garcia@example.com',
-        role: 'admin'
-    }
+    isAuthenticated: false,
+    user: null
 }
 
 // Reducer
@@ -53,8 +56,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
             return { ...state, sidebarCollapsed: action.payload }
         case 'SET_USER':
             return { ...state, user: action.payload }
+        case 'LOGIN':
+            return { ...state, user: action.payload, isAuthenticated: !!action.payload }
         case 'LOGOUT':
-            return { ...state, user: null }
+            return { ...state, user: null, isAuthenticated: false }
         default:
             return state
     }
@@ -69,6 +74,7 @@ interface AppContextType {
     setLanguage: (language: Language) => void
     toggleSidebar: () => void
     setSidebarCollapsed: (collapsed: boolean) => void
+    login: (user: AppState['user']) => void
     logout: () => void
 }
 
@@ -100,6 +106,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const setSidebarCollapsed = (collapsed: boolean) => {
         dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: collapsed })
+    }
+
+    const login = (user: AppState['user']) => {
+        dispatch({ type: 'LOGIN', payload: user })
     }
 
     const logout = () => {
@@ -194,6 +204,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLanguage,
         toggleSidebar,
         setSidebarCollapsed,
+        login,
         logout
     }
 

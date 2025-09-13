@@ -2,7 +2,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
+import { apiService } from '@/lib/api.service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +26,7 @@ import {
 
 export function Header() {
     const { state, setTheme, setLanguage, toggleSidebar, logout } = useApp()
+    const router = useRouter()
     const [searchQuery, setSearchQuery] = useState('')
     const [showLanguageMenu, setShowLanguageMenu] = useState(false)
     const [showThemeMenu, setShowThemeMenu] = useState(false)
@@ -287,9 +290,19 @@ export function Header() {
                                                 </button>
                                                 <div className="border-t my-1"></div>
                                                 <button
-                                                    onClick={() => {
-                                                        logout()
-                                                        closeAllMenus()
+                                                    onClick={async () => {
+                                                        try {
+                                                            // Attempt logout with API
+                                                            await apiService.logout()
+                                                        } catch (error) {
+                                                            console.error('Logout API error:', error)
+                                                            // Continue with local logout even if API fails
+                                                        } finally {
+                                                            // Always clear local state and redirect
+                                                            logout()
+                                                            closeAllMenus()
+                                                            router.push('/login')
+                                                        }
                                                     }}
                                                     className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-destructive hover:text-destructive-foreground transition-colors flex items-center gap-2 text-destructive"
                                                 >

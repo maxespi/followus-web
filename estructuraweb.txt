@@ -102,8 +102,6 @@ Estructura de: C:\Users\maxes\Desktop\Proyectos\followus-web
   |- placeholder-user.jpg
   |- placeholder.jpg
   |- placeholder.svg
-|- styles
-  |- globals.css
 |- .gitignore
 |- components.json
 |- next-env.d.ts
