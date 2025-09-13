@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useApp } from '@/context/AppContext'
+import { useAuth } from '@/context/AppContext'
 import { apiService } from '@/lib/api.service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,15 +20,16 @@ export default function LoginPage() {
     const [error, setError] = useState('')
     const [isServerOnline, setIsServerOnline] = useState<boolean | null>(null)
 
-    const { state, login } = useApp()
+    const { isAuthenticated, isAuthLoading, login } = useAuth()
     const router = useRouter()
 
-    // Redirect to dashboard if already authenticated
+    // Redirect to dashboard if already authenticated (but only after loading finishes)
     useEffect(() => {
-        if (state.isAuthenticated) {
+        if (!isAuthLoading && isAuthenticated) {
+            console.log('✅ Usuario ya autenticado, redirigiendo a dashboard')
             router.push('/')
         }
-    }, [state.isAuthenticated, router])
+    }, [isAuthenticated, isAuthLoading, router])
 
     // Check server connection on component mount
     useEffect(() => {
@@ -68,6 +69,7 @@ export default function LoginPage() {
                 const userData = response.data
 
                 console.log('Backend response:', userData)
+                console.log('🔑 Token en respuesta:', userData.token ? `${userData.token.substring(0, 20)}...` : 'NO HAY TOKEN')
 
                 // Check if user needs to change password
                 if (userData.solicitarCambioPassword) {
@@ -122,6 +124,21 @@ export default function LoginPage() {
         } finally {
             setIsDemoLoading(false)
         }
+    }
+
+    // Mostrar carga si se está validando autenticación
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <div className="text-center">
+                        <p className="font-medium">Verificando sesión...</p>
+                        <p className="text-sm">Por favor espera</p>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (

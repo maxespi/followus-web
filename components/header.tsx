@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useApp } from '@/context/AppContext'
+import { useApp, useAuth } from '@/context/AppContext'
 import { apiService } from '@/lib/api.service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +25,8 @@ import {
 } from 'lucide-react'
 
 export function Header() {
-    const { state, setTheme, setLanguage, toggleSidebar, logout } = useApp()
+    const { state, setTheme, setLanguage, toggleSidebar } = useApp()
+    const { logout } = useAuth()
     const router = useRouter()
     const [searchQuery, setSearchQuery] = useState('')
     const [showLanguageMenu, setShowLanguageMenu] = useState(false)
@@ -292,15 +293,13 @@ export function Header() {
                                                 <button
                                                     onClick={async () => {
                                                         try {
-                                                            // Attempt logout with API
-                                                            await apiService.logout()
-                                                        } catch (error) {
-                                                            console.error('Logout API error:', error)
-                                                            // Continue with local logout even if API fails
-                                                        } finally {
-                                                            // Always clear local state and redirect
-                                                            logout()
+                                                            console.log('🔓 Cerrando sesión...')
+                                                            await logout() // Ahora logout maneja la API y limpieza
                                                             closeAllMenus()
+                                                            router.push('/login')
+                                                        } catch (error) {
+                                                            console.error('Error durante logout:', error)
+                                                            // En caso de error, redirigir igual a login
                                                             router.push('/login')
                                                         }
                                                     }}

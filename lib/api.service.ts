@@ -191,7 +191,11 @@ class ApiService {
 
       // Store token
       if (userData.token) {
+        console.log('💾 Guardando token:', userData.token.substring(0, 20) + '...')
         this.setStoredToken(userData.token)
+        console.log('✅ Token guardado correctamente')
+      } else {
+        console.log('❌ No hay token en la respuesta para guardar')
       }
 
       // Return the user data in the correct format
@@ -234,7 +238,10 @@ class ApiService {
   }
 
   async getCurrentUser(): Promise<ApiResponse> {
-    return this.makeRequest('/usuarios/perfil')
+    console.log('🔍 getCurrentUser() - Iniciando llamada a /usuarios/perfil')
+    const result = await this.makeRequest('/usuarios/perfil')
+    console.log('🔍 getCurrentUser() - Resultado:', result)
+    return result
   }
 
   async testConnection(): Promise<ApiResponse> {
