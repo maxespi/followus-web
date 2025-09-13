@@ -13,8 +13,6 @@ Estructura de: C:\Users\maxes\Desktop\Proyectos\followus-web
     |- page.tsx
   |- settings
     |- page.tsx
-  |- test
-    |- page.tsx
   |- tickets
     |- page.tsx
   |- users
@@ -75,9 +73,6 @@ Estructura de: C:\Users\maxes\Desktop\Proyectos\followus-web
     |- use-mobile.tsx
     |- use-toast.ts
   |- analytics-overview.tsx
-  |- article-editor.tsx
-  |- category-manager.tsx
-  |- channel-config.tsx
   |- channel-management.tsx
   |- dashboard-overview.tsx
   |- header.tsx
@@ -87,11 +82,9 @@ Estructura de: C:\Users\maxes\Desktop\Proyectos\followus-web
   |- security-overview.tsx
   |- settings-overview.tsx
   |- sidebar.tsx
-  |- theme-provider.tsx
   |- ticket-details.tsx
   |- ticket-management.tsx
   |- user-management.tsx
-  |- webchat-widget.tsx
 |- context
   |- AppContext.tsx
 |- hooks
@@ -112,10 +105,7 @@ Estructura de: C:\Users\maxes\Desktop\Proyectos\followus-web
 |- styles
   |- globals.css
 |- .gitignore
-|- code.md
 |- components.json
-|- estructura.ps1
-|- estructuraweb.txt
 |- next-env.d.ts
 |- next.config.mjs
 |- package-lock.json

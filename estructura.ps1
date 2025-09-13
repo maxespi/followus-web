@@ -3,7 +3,7 @@ $root = Get-Location
 $output = "$root\estructuraweb.txt"
 
 # Carpetas a excluir (puedes agregar más separadas por coma)
-$excluded = @("node_modules", "android", "ios", "build", "dist", ".git", ".vscode", ".idea", ".next")
+$excluded = @("node_modules", "android", "ios", "build", "dist", ".git", ".vscode", ".idea", ".next", "estructura.ps1", "estructuraweb.txt", "code.md")
 
 # Limpiar archivo de salida si existe
 if (Test-Path $output) { Remove-Item $output }
