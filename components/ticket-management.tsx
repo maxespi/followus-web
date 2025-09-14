@@ -25,7 +25,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { tasksService, Ticket } from '@/lib/tasks.service'
-import { TicketDetails } from '@/components/ticket-details'
+import { TicketDetailsAdvanced } from '@/components/ticket-details-advanced'
 import { NewTicketDialog } from '@/components/new-ticket-dialog'
 import { formatRelativeTime, formatDate } from '@/lib/date-utils'
 import { useTicketMetrics } from '@/hooks/use-ticket-metrics'
@@ -441,7 +441,7 @@ export function TicketManagement() {
                 {/* Panel de Detalles - Ahora responsivo */}
                 <div className="xl:col-span-1 flex flex-col">
                   <div className="sticky top-6 flex-1">
-                    <TicketDetails ticket={selectedTicket} />
+                    <TicketDetailsAdvanced ticket={selectedTicket} />
                   </div>
                 </div>
               </div>
@@ -569,7 +569,7 @@ export function TicketManagement() {
             {/* Vista de Detalles */}
             <TabsContent value="details" className="flex-1 mt-4">
               <div className="h-full">
-                <TicketDetails ticket={selectedTicket} expanded />
+                <TicketDetailsAdvanced ticket={selectedTicket} expanded />
               </div>
             </TabsContent>
           </Tabs>
