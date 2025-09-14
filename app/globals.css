@@ -41,38 +41,38 @@
 }
 
 .dark {
-  /* Updated dark mode tokens for FollowUS - Lighter gray tones for better visibility */
-  --background: oklch(0.22 0 0);        /* Lighter gray for better design visibility */
-  --foreground: oklch(0.90 0 0);        /* Slightly softer white */
-  --card: oklch(0.26 0 0);              /* Subtle card elevation with more contrast */
-  --card-foreground: oklch(0.90 0 0);   /* Consistent with foreground */
-  --popover: oklch(0.24 0 0);           /* Slightly different from background */
-  --popover-foreground: oklch(0.90 0 0);
+  /* Significantly lighter dark mode - improved readability */
+  --background: oklch(0.30 0 0);        /* Much lighter background for better UX */
+  --foreground: oklch(0.95 0 0);        /* Brighter text for contrast */
+  --card: oklch(0.34 0 0);              /* Lighter cards with good elevation */
+  --card-foreground: oklch(0.95 0 0);   /* Consistent bright text */
+  --popover: oklch(0.32 0 0);           /* Consistent with design */
+  --popover-foreground: oklch(0.95 0 0);
   --primary: oklch(0.55 0.12 162);      /* Keep emerald primary */
-  --primary-foreground: oklch(0.16 0 0); /* Darker for better contrast */
-  --secondary: oklch(0.32 0 0);         /* Lighter secondary */
-  --secondary-foreground: oklch(0.90 0 0);
-  --muted: oklch(0.30 0 0);             /* Better muted areas */
-  --muted-foreground: oklch(0.70 0 0);  /* Better text contrast */
-  --accent: oklch(0.33 0 0);            /* Subtle accent areas */
-  --accent-foreground: oklch(0.90 0 0);
+  --primary-foreground: oklch(0.12 0 0); /* High contrast for accessibility */
+  --secondary: oklch(0.40 0 0);         /* Significantly lighter secondary */
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.38 0 0);             /* Much lighter muted areas */
+  --muted-foreground: oklch(0.75 0 0);  /* Better readable muted text */
+  --accent: oklch(0.42 0 0);            /* Lighter accent areas */
+  --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.496 0.141 25.723); /* Keep red unchanged */
   --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.35 0 0);            /* More visible borders */
-  --input: oklch(0.28 0 0);             /* Better input background */
+  --border: oklch(0.45 0 0);            /* Much lighter borders */
+  --input: oklch(0.36 0 0);             /* Lighter input backgrounds */
   --ring: oklch(0.55 0.12 162 / 0.5);   /* Keep emerald focus ring */
   --chart-1: oklch(0.55 0.12 162);      /* Maintain chart colors */
   --chart-2: oklch(0.65 0.1 162);
-  --chart-3: oklch(0.72 0 0);
-  --chart-4: oklch(0.35 0 0);
+  --chart-3: oklch(0.80 0 0);
+  --chart-4: oklch(0.45 0 0);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.17 0 0);           /* Subtle sidebar difference */
-  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar: oklch(0.26 0 0);           /* Lighter sidebar */
+  --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.55 0.12 162);
   --sidebar-primary-foreground: oklch(0.12 0 0);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: oklch(0.92 0 0);
-  --sidebar-border: oklch(0.27 0 0);
+  --sidebar-accent: oklch(0.35 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.38 0 0);
   --sidebar-ring: oklch(0.55 0.12 162 / 0.5);
 }
 

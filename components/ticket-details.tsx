@@ -121,76 +121,164 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
 
           {expanded && (
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Información del Cliente */}
-                  <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Información del Cliente - Mejorada */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium flex items-center gap-2 text-sm border-b pb-2">
                       <User className="h-4 w-4" />
-                      Cliente
+                      Información del Cliente
                     </h4>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">
-                          {ticket.creator.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{ticket.creator.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{ticket.creator.email}</p>
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="text-sm font-medium">
+                            {ticket.creator.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{ticket.creator.name}</p>
+                          <p className="text-sm text-muted-foreground truncate">{ticket.creator.email}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">ID: {ticket.creator.id}</Badge>
+                            <Badge variant="outline" className="text-xs">Creador</Badge>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Información de Asignación */}
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Asignado a</h4>
+                  {/* Información de Asignación - Mejorada */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm border-b pb-2">Responsable Asignado</h4>
                     {ticket.assignedTo ? (
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs">
-                              {ticket.assignedTo.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm truncate">{ticket.assignedTo.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{ticket.assignedTo.role || 'Agente'}</p>
+                        <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="text-sm font-medium">
+                                {ticket.assignedTo.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{ticket.assignedTo.name}</p>
+                              <p className="text-sm text-muted-foreground">{ticket.assignedTo.role || 'Agente de Soporte'}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="default" className="text-xs">Responsable</Badge>
+                                <Badge variant="outline" className="text-xs">ID: {ticket.assignedTo.id}</Badge>
+                              </div>
+                            </div>
                           </div>
                         </div>
                     ) : (
-                        <p className="text-muted-foreground text-sm">Sin asignar</p>
+                        <div className="bg-muted/20 p-3 rounded-lg border border-dashed">
+                          <p className="text-muted-foreground text-sm text-center">Sin asignar</p>
+                          <p className="text-xs text-muted-foreground text-center mt-1">Este ticket necesita ser asignado a un agente</p>
+                        </div>
                     )}
                   </div>
                 </div>
 
                 <Separator />
 
-                {/* Metadatos */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Creado</p>
-                    <p className="font-medium">{formatDate(ticket.createdAt)}</p>
+                {/* Metadatos Expandidos */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-card border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Fechas</p>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Creado:</span>
+                        <span className="font-medium">{formatDate(ticket.createdAt)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Actualizado:</span>
+                        <span className="font-medium">{formatDate(ticket.updatedAt)}</span>
+                      </div>
+                      {ticket.startDate && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Iniciado:</span>
+                          <span className="font-medium">{formatDate(ticket.startDate)}</span>
+                        </div>
+                      )}
+                      {ticket.fecha_finalizacion && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Finalizado:</span>
+                          <span className="font-medium">{formatDate(ticket.fecha_finalizacion)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Categoría</p>
-                    <p className="font-medium">{ticket.category || 'General'}</p>
+
+                  <div className="bg-card border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Clasificación</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Categoría:</span>
+                        <Badge variant="outline" className="text-xs">{ticket.category || 'General'}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Canal:</span>
+                        <div className="flex items-center gap-1">
+                          {getChannelIcon(ticket.channel)}
+                          <span className="text-xs capitalize">{ticket.channel}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Prioridad:</span>
+                        <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
+                          {t(`tickets.${ticket.priority}`)}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-card border rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Actividad</p>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Estado:</span>
+                        <Badge variant={getStatusColor(ticket.status) as any} className="text-xs">
+                          {t(`tickets.${ticket.status}`)}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mensajes:</span>
+                        <span className="font-medium">{ticket.messages.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Participantes:</span>
+                        <span className="font-medium">{(ticket.participants?.length || 0) + 1}</span>
+                      </div>
+                      {ticket.viewedBy && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Visto por:</span>
+                          <span className="font-medium">{ticket.viewedBy.length} usuario(s)</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Tags */}
+                {/* Tags y Etiquetas - Mejoradas */}
                 {ticket.tags && ticket.tags.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Tags</p>
-                      <div className="flex flex-wrap gap-1">
-                        {ticket.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs py-0">
-                              {tag}
+                    <div className="bg-muted/20 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <p className="text-sm font-medium">Etiquetas del Ticket</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {ticket.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs px-2 py-1">
+                              #{tag}
                             </Badge>
                         ))}
-                        {ticket.tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs py-0">
-                              +{ticket.tags.length - 3}
-                            </Badge>
-                        )}
                       </div>
                     </div>
                 )}
@@ -295,7 +383,36 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
         {/* Acciones - Solo para vista compacta del sidebar */}
         {!expanded && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 space-y-3">
+                {/* Participantes */}
+                {ticket.participants && ticket.participants.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Participantes ({ticket.participants.length})</p>
+                    <div className="flex flex-wrap gap-1">
+                      {ticket.participants.slice(0, 3).map((participant) => (
+                        <div key={participant.id} className="flex items-center gap-1 bg-muted/50 rounded px-2 py-1">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback className="text-xs text-muted-foreground">
+                              {participant.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs truncate max-w-16">{participant.name.split(' ')[0]}</span>
+                          {participant.role && (
+                            <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                              {participant.role}
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                      {ticket.participants.length > 3 && (
+                        <div className="flex items-center justify-center bg-muted/50 rounded px-2 py-1">
+                          <span className="text-xs text-muted-foreground">+{ticket.participants.length - 3}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" size="sm" className="text-xs">
                     Asignar
@@ -312,9 +429,54 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
         {expanded && (
             <Card>
               <CardHeader>
-                <CardTitle>Acciones</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Acciones</span>
+                  {ticket.participants && ticket.participants.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {ticket.participants.length} participante{ticket.participants.length !== 1 ? 's' : ''}
+                    </Badge>
+                  )}
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Participantes expandidos */}
+                {ticket.participants && ticket.participants.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      Participantes del Ticket
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {ticket.participants.map((participant) => (
+                        <div key={participant.id} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-xs">
+                              {participant.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{participant.name}</p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              {participant.role && (
+                                <Badge variant="outline" className="text-xs px-1 py-0 h-4">
+                                  {participant.role}
+                                </Badge>
+                              )}
+                              {participant.hasPrivileges && (
+                                <Badge variant="secondary" className="text-xs px-1 py-0 h-4">
+                                  Admin
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline">
                     {t('tickets.assign')}

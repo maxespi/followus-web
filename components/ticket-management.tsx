@@ -275,16 +275,16 @@ export function TicketManagement() {
           </Button>
         </div>
 
-        {/* Filtros y Búsqueda - Optimizados para dar más espacio al tablero */}
+        {/* Filtros y Búsqueda - Panel compactado para maximizar espacio */}
         <Card className="flex-shrink-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
+          <CardHeader className="py-1">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <Filter className="h-4 w-4" />
               {t('tickets.filters')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 pb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <CardContent className="py-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
               {/* Búsqueda */}
               <div className="lg:col-span-2">
                 <div className="relative">
@@ -359,25 +359,28 @@ export function TicketManagement() {
               <TabsTrigger value="details">{t('tickets.ticketDetails')}</TabsTrigger>
             </TabsList>
 
-            {/* Vista de Lista */}
-            <TabsContent value="list" className="flex-1 mt-4">
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
-                {/* Lista de Tickets - Ocupa más espacio en pantallas grandes */}
-                <div className="xl:col-span-2 flex flex-col">
-                  <Card className="flex-1 flex flex-col">
-                    <CardHeader className="flex-shrink-0">
-                      <CardTitle>
+            {/* Vista de Lista - Layout consistente */}
+            <TabsContent value="list" className="flex-1 mt-4 min-h-0">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full min-h-0">
+                {/* Lista de Tickets - Scroll independiente */}
+                <div className="xl:col-span-2 flex flex-col min-h-0">
+                  <Card className="flex-1 flex flex-col min-h-0">
+                    <CardHeader className="flex-shrink-0 py-3">
+                      <CardTitle className="text-base">
                         {t('tickets.title')} ({listTickets.length})
                       </CardTitle>
-                      <CardDescription>
+                      <CardDescription className="text-sm">
                         {listTickets.filter((t) => t.status === "open").length} {t('tickets.open')},{" "}
                         {listTickets.filter((t) => t.status === "in_progress").length} {t('tickets.in_progress')},{" "}
                         {listTickets.filter((t) => t.status === "pending").length} {t('tickets.pending')}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col min-h-0">
-                      <ScrollArea className="flex-1 pr-4">
-                        <div className="space-y-4">
+                    <CardContent className="flex-1 flex flex-col min-h-0 p-4">
+                      <ScrollArea
+                        className="flex-1 pr-2"
+                        style={{ height: 'calc(100vh - 340px)' }}
+                      >
+                        <div className="space-y-3">
                           {listTickets.length === 0 ? (
                               <div className="text-center py-8 text-muted-foreground">
                                 {t('common.noResults')}
@@ -386,7 +389,7 @@ export function TicketManagement() {
                               listTickets.map((ticket) => (
                                   <div
                                       key={ticket.id}
-                                      className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
+                                      className={`p-3 border border-border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
                                           selectedTicket?.id === ticket.id ? "bg-muted border-primary" : ""
                                       }`}
                                       onClick={() => loadTicketDetail(ticket.id)}
@@ -394,46 +397,32 @@ export function TicketManagement() {
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="space-y-2 flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="font-mono text-sm text-muted-foreground">{ticket.id}</span>
+                                          <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
                                           {getChannelIcon(ticket.channel)}
-                                          <Badge variant={getPriorityColor(ticket.priority) as any}>
+                                          <Badge variant={getPriorityColor(ticket.priority) as any} className="text-xs">
                                             {t(`tickets.${ticket.priority}`)}
                                           </Badge>
-                                          <Badge variant={getStatusColor(ticket.status) as any}>
+                                          <Badge variant={getStatusColor(ticket.status) as any} className="text-xs">
                                             {t(`tickets.${ticket.status}`)}
                                           </Badge>
                                         </div>
-                                        <h3 className="font-medium line-clamp-2 leading-5">{ticket.title}</h3>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                                        <h3 className="font-medium line-clamp-2 leading-5 text-sm">{ticket.title}</h3>
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                                           <div className="flex items-center gap-1 min-w-0">
                                             <User className="h-3 w-3 flex-shrink-0" />
                                             <span className="truncate">{ticket.creator.name}</span>
                                           </div>
                                           {ticket.assignedTo && (
                                               <>
-                                                <span className="hidden sm:inline">•</span>
-                                                <span className="truncate hidden sm:inline">{ticket.assignedTo.name}</span>
+                                                <span>•</span>
+                                                <span className="truncate">{ticket.assignedTo.name}</span>
                                               </>
                                           )}
-                                          <span className="hidden sm:inline">•</span>
+                                          <span>•</span>
                                           <div className="flex items-center gap-1 flex-shrink-0">
                                             <Clock className="h-3 w-3" />
-                                            <span className="text-xs">{formatRelativeTime(ticket.updatedAt)}</span>
+                                            <span>{formatRelativeTime(ticket.updatedAt)}</span>
                                           </div>
-                                          {ticket.startDate && (
-                                              <>
-                                                <span className="hidden sm:inline">•</span>
-                                                <div className="flex items-center gap-1 flex-shrink-0 hidden sm:flex">
-                                                  <Calendar className="h-3 w-3" />
-                                                  <span className="text-xs">Inicio: {formatDate(ticket.startDate)}</span>
-                                                </div>
-                                              </>
-                                          )}
-                                          <span className="hidden md:inline">•</span>
-                                          <span className="flex items-center gap-1 text-xs flex-shrink-0 hidden md:flex">
-                                      <Calendar className="h-3 w-3" />
-                                            {ticket.category || 'General'}
-                                    </span>
                                         </div>
                                       </div>
                                       {ticket.priority === "urgent" && (
