@@ -14,14 +14,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
     const { isAuthenticated, isAuthLoading, user } = useAuth()
     const router = useRouter()
 
-    console.log('🛡️ AuthGuard - Estado actual:', { isAuthenticated, isAuthLoading, user: user?.name })
-
     useEffect(() => {
-        console.log('🛡️ AuthGuard useEffect triggered:', { isAuthenticated, isAuthLoading })
 
         // Solo redirigir si no está cargando y no está autenticado
         if (!isAuthLoading && !isAuthenticated) {
-            console.log('🔒 Usuario no autenticado, redirigiendo a login')
             router.push('/login')
         }
     }, [isAuthenticated, isAuthLoading, router])
@@ -61,6 +57,5 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // Usuario autenticado: mostrar contenido
-    console.log('✅ Usuario autenticado:', user?.name)
     return <>{children}</>
 }

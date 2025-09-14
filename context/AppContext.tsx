@@ -147,46 +147,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Inicializar autenticación al cargar la app
     const initializeAuth = async () => {
         try {
-            console.log('🔍 Iniciando validación de autenticación...')
-
             // Verificar si hay token almacenado
             const token = typeof window !== 'undefined' ? (
                 localStorage.getItem('accessToken') || localStorage.getItem('token')
             ) : null
 
-            console.log('🔑 Token encontrado:', token ? `${token.substring(0, 20)}...` : 'ninguno')
-
             if (!token) {
-                console.log('❌ No hay token, marcando como no autenticado')
                 dispatch({ type: 'INITIALIZE_AUTH', payload: { user: null, isAuthenticated: false } })
                 return
             }
 
             // Validar token con el servidor
-            console.log('📡 Validando token con servidor...')
             const profileResponse = await apiService.getCurrentUser()
-            console.log('📨 Respuesta del servidor:', profileResponse)
-            console.log('📨 Tipo de respuesta:', typeof profileResponse)
-            console.log('📨 Keys de la respuesta:', Object.keys(profileResponse || {}))
-            console.log('📨 Dispositivos:', profileResponse?.dispositivos)
-            console.log('📨 Empresas:', profileResponse?.empresas)
 
             // El endpoint /perfil puede retornar directamente los datos o con wrapper
             let userData = null
 
             if (profileResponse.success && profileResponse.data) {
-                console.log('✅ Formato con wrapper detectado')
                 userData = profileResponse.data
             } else if (profileResponse.id && profileResponse.email) {
-                console.log('✅ Formato directo detectado')
                 userData = profileResponse
             } else if (profileResponse.empresas || profileResponse.dispositivos) {
-                console.log('🔧 Formato parcial detectado - intentando extraer datos del token')
-                // El servidor devuelve datos parciales, vamos a crear un usuario básico
-                // y tratar de extraer el ID del token
+                // El servidor devuelve datos parciales, extraer datos del token
                 try {
                     const tokenData = JSON.parse(atob(token.split('.')[1])) // Decodificar payload del JWT
-                    console.log('📋 Datos del token JWT:', tokenData)
 
                     userData = {
                         id: tokenData.id || tokenData.userId || 'temp-user',
@@ -197,9 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                         dispositivos: profileResponse.dispositivos || [],
                         nivelAcceso: tokenData.nivelAcceso || 'user'
                     }
-                    console.log('🔧 Usuario construido desde token:', userData)
                 } catch (e) {
-                    console.log('❌ Error decodificando token, usando datos básicos')
                     userData = {
                         id: 'temp-user',
                         nombre: 'Usuario',
@@ -210,8 +192,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                         nivelAcceso: 'user'
                     }
                 }
-            } else {
-                console.log('❌ Formato de respuesta no reconocido:', profileResponse)
             }
 
             if (userData && userData.id) {
@@ -226,9 +206,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 dispatch({ type: 'INITIALIZE_AUTH', payload: { user: normalizedUser, isAuthenticated: true } })
-                console.log('✅ Usuario autenticado persistentemente:', normalizedUser)
             } else {
-                console.log('❌ Datos de usuario inválidos, limpiando tokens')
                 // Token inválido, limpiar storage
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('accessToken')
@@ -236,17 +214,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     localStorage.removeItem('refreshToken')
                 }
                 dispatch({ type: 'INITIALIZE_AUTH', payload: { user: null, isAuthenticated: false } })
-                console.log('❌ Token inválido, usuario no autenticado')
             }
         } catch (error) {
-            console.error('❌ Error inicializando autenticación:', error)
-
-            // Verificar el tipo de error
-            if (error.message?.includes('401') || error.message?.includes('403')) {
-                console.log('🔓 Token expirado o inválido, limpiando storage')
-            } else {
-                console.log('🌐 Error de red o servidor, limpiando tokens por seguridad')
-            }
+            console.error('Error inicializando autenticación:', error)
 
             // Error de red, limpiar tokens por seguridad
             if (typeof window !== 'undefined') {

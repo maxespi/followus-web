@@ -26,7 +26,6 @@ export default function LoginPage() {
     // Redirect to dashboard if already authenticated (but only after loading finishes)
     useEffect(() => {
         if (!isAuthLoading && isAuthenticated) {
-            console.log('✅ Usuario ya autenticado, redirigiendo a dashboard')
             router.push('/')
         }
     }, [isAuthenticated, isAuthLoading, router])
@@ -68,8 +67,6 @@ export default function LoginPage() {
             if (response.success && response.data) {
                 const userData = response.data
 
-                console.log('Backend response:', userData)
-                console.log('🔑 Token en respuesta:', userData.token ? `${userData.token.substring(0, 20)}...` : 'NO HAY TOKEN')
 
                 // Check if user needs to change password
                 if (userData.solicitarCambioPassword) {
@@ -87,7 +84,6 @@ export default function LoginPage() {
                     rasgosDistintivos: userData.rasgosDistintivos
                 }
 
-                console.log('Login successful, normalized user:', normalizedUser)
                 login(normalizedUser)
                 router.push('/')
             } else {

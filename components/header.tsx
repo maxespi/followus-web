@@ -293,13 +293,11 @@ export function Header() {
                                                 <button
                                                     onClick={async () => {
                                                         try {
-                                                            console.log('🔓 Cerrando sesión...')
-                                                            await logout() // Ahora logout maneja la API y limpieza
+                                                            await logout()
                                                             closeAllMenus()
                                                             router.push('/login')
                                                         } catch (error) {
                                                             console.error('Error durante logout:', error)
-                                                            // En caso de error, redirigir igual a login
                                                             router.push('/login')
                                                         }
                                                     }}

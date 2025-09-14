@@ -20,7 +20,8 @@ import {
   Share,
   Globe,
   Plus,
-  Send
+  Send,
+  MoreHorizontal
 } from 'lucide-react'
 import { Ticket } from '@/lib/tasks.service'
 import { formatDate } from '@/lib/date-utils'
@@ -33,6 +34,7 @@ interface TicketDetailsProps {
 export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) {
   const { t } = useTranslation()
   const [newMessage, setNewMessage] = useState('')
+  const [showCommentInput, setShowCommentInput] = useState(false)
 
   if (!ticket) {
     return (
@@ -196,15 +198,50 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
           )}
         </Card>
 
-        {/* Conversación - Compacta para sidebar, expandida para view completa */}
+        {/* Conversación - Con input reposicionado y botón Más */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-              <MessageSquare className="h-4 w-4" />
-              Conversación ({ticket.messages.length})
+            <CardTitle className="flex items-center justify-between text-sm sm:text-base">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Conversación ({ticket.messages.length})
+              </div>
+              {!expanded && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCommentInput(!showCommentInput)}
+                  className="h-8 w-8 p-0"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Input de comentarios - Mostrado al inicio cuando corresponde */}
+            {(expanded || showCommentInput) && (
+              <div className="space-y-3 mb-4">
+                <Textarea
+                  placeholder="Escribe tu respuesta..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="min-h-[80px] text-sm"
+                />
+                <div className="flex justify-between">
+                  <Button variant="outline" size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adjuntar
+                  </Button>
+                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()} size="sm">
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar
+                  </Button>
+                </div>
+                <Separator />
+              </div>
+            )}
+
             {ticket.messages.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground">
                   <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -213,7 +250,11 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
             ) : (
                 <ScrollArea className={expanded ? "h-[400px]" : "h-[200px]"}>
                   <div className="space-y-3 pr-3">
-                    {ticket.messages.map((message) => (
+                    {/* Mensajes ordenados por fecha descendente (más reciente primero) */}
+                    {ticket.messages
+                      .slice()
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((message) => (
                         <div key={message.id} className="flex space-x-2">
                           <Avatar className="h-6 w-6 mt-1">
                             <AvatarFallback className="text-xs">
@@ -247,31 +288,6 @@ export function TicketDetails({ ticket, expanded = false }: TicketDetailsProps) 
                     ))}
                   </div>
                 </ScrollArea>
-            )}
-
-            {/* Nueva respuesta - Solo en vista expandida */}
-            {expanded && (
-                <>
-                  <Separator className="my-4" />
-                  <div className="space-y-3">
-                    <Textarea
-                        placeholder="Escribe tu respuesta..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        className="min-h-[80px] text-sm"
-                    />
-                    <div className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Adjuntar
-                      </Button>
-                      <Button onClick={handleSendMessage} disabled={!newMessage.trim()} size="sm">
-                        <Send className="mr-2 h-4 w-4" />
-                        Enviar
-                      </Button>
-                    </div>
-                  </div>
-                </>
             )}
           </CardContent>
         </Card>

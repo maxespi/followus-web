@@ -275,16 +275,16 @@ export function TicketManagement() {
           </Button>
         </div>
 
-        {/* Filtros y Búsqueda */}
+        {/* Filtros y Búsqueda - Optimizados para dar más espacio al tablero */}
         <Card className="flex-shrink-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Filter className="h-4 w-4" />
               {t('tickets.filters')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          <CardContent className="pt-0 pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
               {/* Búsqueda */}
               <div className="lg:col-span-2">
                 <div className="relative">
@@ -350,9 +350,9 @@ export function TicketManagement() {
           </CardContent>
         </Card>
 
-        {/* Tabs de Vista - Ocupa el resto del espacio */}
+        {/* Tabs de Vista - Ocupa el resto del espacio disponible del viewport */}
         <div className="flex-1 flex flex-col min-h-0">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
             <TabsList className="flex-shrink-0 grid w-full grid-cols-3">
               <TabsTrigger value="list">{t('tickets.listView')}</TabsTrigger>
               <TabsTrigger value="kanban">{t('tickets.kanbanBoard')}</TabsTrigger>
@@ -458,13 +458,16 @@ export function TicketManagement() {
               </div>
             </TabsContent>
 
-            {/* Vista Kanban - Marco inferior para scroll + padding corregido */}
-            <TabsContent value="kanban" className="flex-1 mt-4">
-              <div className="h-full flex flex-col">
-                {/* Contenedor horizontal con scroll y marco inferior visible */}
-                <div className="flex-1 overflow-hidden border border-border rounded-lg">
+            {/* Vista Kanban - Marco ajustado al viewport */}
+            <TabsContent value="kanban" className="flex-1 mt-4 min-h-0">
+              <div className="h-full flex flex-col min-h-0">
+                {/* Contenedor con altura fija calculada para ajustarse al viewport */}
+                <div
+                  className="flex-1 overflow-hidden border border-border rounded-lg"
+                  style={{ height: 'calc(100vh - 290px)' }}
+                >
                   <div className="h-full overflow-x-auto overflow-y-hidden">
-                    <div className="flex gap-6 h-full min-w-max p-4 pb-6">
+                    <div className="flex gap-6 h-full min-w-max p-4">
                       {["open", "in_progress", "pending", "resolved"].map((status) => {
                         const statusTickets = kanbanTickets.filter(ticket => ticket.status === status)
 
