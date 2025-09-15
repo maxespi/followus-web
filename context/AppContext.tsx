@@ -38,14 +38,42 @@ export type AppAction =
     | { type: 'SET_AUTH_LOADING'; payload: boolean }
     | { type: 'INITIALIZE_AUTH'; payload: { user: AppState['user']; isAuthenticated: boolean } }
 
-// Estado inicial
-const initialState: AppState = {
-    theme: 'light',
-    language: 'es',
-    sidebarCollapsed: false,
-    isAuthenticated: false,
-    isAuthLoading: true, // Inicio cargando para validar token
-    user: null
+// Función para obtener estado inicial desde localStorage
+function getInitialState(): AppState {
+    const defaultState: AppState = {
+        theme: 'light',
+        language: 'es',
+        sidebarCollapsed: false,
+        isAuthenticated: false,
+        isAuthLoading: true, // Inicio cargando para validar token
+        user: null
+    }
+
+    // Solo en el cliente, cargar desde localStorage
+    if (typeof window !== 'undefined') {
+        try {
+            const saved = localStorage.getItem('followus-app-settings')
+            if (saved) {
+                const settings = JSON.parse(saved)
+                return {
+                    ...defaultState,
+                    theme: (settings.theme && ['light', 'dark', 'system'].includes(settings.theme))
+                        ? settings.theme
+                        : defaultState.theme,
+                    language: (settings.language && ['en', 'es'].includes(settings.language))
+                        ? settings.language
+                        : defaultState.language,
+                    sidebarCollapsed: (typeof settings.sidebarCollapsed === 'boolean')
+                        ? settings.sidebarCollapsed
+                        : defaultState.sidebarCollapsed
+                }
+            }
+        } catch (error) {
+            console.error('Error loading initial settings:', error)
+        }
+    }
+
+    return defaultState
 }
 
 // Reducer
@@ -106,7 +134,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 // Provider
 export function AppProvider({ children }: { children: React.ReactNode }) {
-    const [state, dispatch] = useReducer(appReducer, initialState)
+    const [state, dispatch] = useReducer(appReducer, getInitialState())
 
     // Función de traducción
     const t = (key: string): string => {
@@ -228,26 +256,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    // Cargar configuración guardada
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem('followus-app-settings')
-            if (saved) {
-                const settings = JSON.parse(saved)
-                if (settings.theme && ['light', 'dark', 'system'].includes(settings.theme)) {
-                    dispatch({ type: 'SET_THEME', payload: settings.theme })
-                }
-                if (settings.language && ['en', 'es'].includes(settings.language)) {
-                    dispatch({ type: 'SET_LANGUAGE', payload: settings.language })
-                }
-                if (typeof settings.sidebarCollapsed === 'boolean') {
-                    dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: settings.sidebarCollapsed })
-                }
-            }
-        } catch (error) {
-            console.error('Error loading settings:', error)
-        }
-    }, [])
+    // Ya no necesitamos este useEffect porque cargamos directamente en getInitialState()
+    // useEffect removido para evitar doble carga
 
     // Guardar configuración cuando cambie
     useEffect(() => {
