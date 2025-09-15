@@ -6,7 +6,11 @@
       "Bash(npm run build:*)",
       "Bash(npm install:*)",
       "Bash(npm run dev:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
