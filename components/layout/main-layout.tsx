@@ -2,9 +2,9 @@
 'use client'
 
 import { useSidebar } from '@/context/AppContext'
-import { Header } from '@/components/header'
-import { Sidebar } from '@/components/sidebar'
-import { AuthGuard } from '@/components/auth-guard'
+import { Header } from './header'
+import { Sidebar } from './sidebar'
+import { AuthGuard } from '../shared/auth-guard'
 import { cn } from '@/lib/utils'
 
 interface MainLayoutProps {

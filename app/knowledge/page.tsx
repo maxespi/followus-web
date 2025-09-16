@@ -1,6 +1,6 @@
 // app/knowledge/page.tsx
-import { MainLayout } from '@/components/main-layout'
-import { KnowledgeBase } from '@/components/knowledge-base'
+import { MainLayout } from '@/components/layout'
+import { KnowledgeBase } from '@/components/features/knowledge'
 
 export default function KnowledgePage() {
   return (

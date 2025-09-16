@@ -1,6 +1,6 @@
 // app/settings/page.tsx
-import { MainLayout } from '@/components/main-layout'
-import { SettingsOverview } from '@/components/settings-overview'
+import { MainLayout } from '@/components/layout'
+import { SettingsOverview } from '@/components/features/settings'
 
 export default function SettingsPage() {
     return (

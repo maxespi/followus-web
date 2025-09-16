@@ -1,8 +1,7 @@
 // components/settings-overview.tsx
 'use client'
 
-import { useState } from 'react'
-import { useApp } from '@/context/AppContext'
+import { useSettings } from '@/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,41 +22,19 @@ import {
 } from 'lucide-react'
 
 export function SettingsOverview() {
-    const { state, setTheme, setLanguage } = useApp()
-    const [settings, setSettings] = useState({
-        general: {
-            companyName: 'FollowUS',
-            supportEmail: 'support@followus.com',
-            timezone: 'America/Santiago',
-            language: state.language,
-            theme: state.theme
-        },
-        notifications: {
-            emailNotifications: true,
-            pushNotifications: true,
-            slackIntegration: false,
-            discordIntegration: false
-        },
-        system: {
-            maintenanceMode: false,
-            debugMode: false,
-            autoBackup: true,
-            logRetention: 30
-        }
-    })
-
-    const handleSave = () => {
-        // Aplicar cambios de tema e idioma
-        if (settings.general.theme !== state.theme) {
-            setTheme(settings.general.theme as any)
-        }
-        if (settings.general.language !== state.language) {
-            setLanguage(settings.general.language as any)
-        }
-
-        // Aquí iría la lógica para guardar otras configuraciones
-        console.log('Configuraciones guardadas:', settings)
-    }
+    const {
+        settings,
+        isLoading,
+        isSaved,
+        updateGeneralSettings,
+        updateNotificationSettings,
+        updateSystemSettings,
+        handleSave,
+        resetToDefaults,
+        timezones,
+        languages,
+        themes
+    } = useSettings()
 
     return (
         <div className="space-y-6">

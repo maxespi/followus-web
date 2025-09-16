@@ -1,8 +1,8 @@
 // components/analytics-overview.tsx
 'use client'
 
-import { useState } from 'react'
 import { useTranslation } from '@/context/AppContext'
+import { useAnalytics } from '@/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,7 +24,17 @@ import {
 
 export function AnalyticsOverview() {
     const { t } = useTranslation()
-    const [dateRange, setDateRange] = useState('7d')
+    const {
+        data,
+        dateRange,
+        setDateRange,
+        performanceMetrics,
+        channelPerformance,
+        agentRankings,
+        getTrendColor,
+        getTrendIcon,
+        getStatusColor
+    } = useAnalytics()
 
     const analyticsData = {
         performance: {

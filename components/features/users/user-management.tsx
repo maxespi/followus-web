@@ -1,8 +1,8 @@
 // components/user-management.tsx
 'use client'
 
-import { useState } from 'react'
 import { useTranslation } from '@/context/AppContext'
+import { useUserManagement } from '@/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,62 +25,16 @@ import {
 
 export function UserManagement() {
     const { t } = useTranslation()
-    const [searchQuery, setSearchQuery] = useState('')
-    const [roleFilter, setRoleFilter] = useState('all')
-
-    const users = [
-        {
-            id: 'user-1',
-            name: 'Ana García',
-            email: 'ana.garcia@example.com',
-            role: 'admin',
-            status: 'online',
-            lastSeen: new Date(),
-            ticketsAssigned: 23,
-            phone: '+56 9 8765 4321',
-            joinDate: new Date('2023-01-15')
-        },
-        {
-            id: 'user-2',
-            name: 'Carlos Rodríguez',
-            email: 'carlos.rodriguez@example.com',
-            role: 'agent',
-            status: 'online',
-            lastSeen: new Date(),
-            ticketsAssigned: 18,
-            phone: '+56 9 1234 5678',
-            joinDate: new Date('2023-03-22')
-        },
-        {
-            id: 'user-3',
-            name: 'María López',
-            email: 'maria.lopez@example.com',
-            role: 'agent',
-            status: 'busy',
-            lastSeen: new Date(Date.now() - 300000),
-            ticketsAssigned: 15,
-            phone: '+56 9 9876 5432',
-            joinDate: new Date('2023-05-10')
-        }
-    ]
-
-    const getRoleColor = (role: string) => {
-        const colors = {
-            admin: 'destructive',
-            agent: 'default',
-            customer: 'secondary'
-        }
-        return colors[role as keyof typeof colors] || 'secondary'
-    }
-
-    const getStatusColor = (status: string) => {
-        const colors = {
-            online: 'default',
-            busy: 'secondary',
-            offline: 'outline'
-        }
-        return colors[status as keyof typeof colors] || 'outline'
-    }
+    const {
+        users,
+        userStats,
+        searchQuery,
+        setSearchQuery,
+        roleFilter,
+        setRoleFilter,
+        getRoleColor,
+        getStatusColor
+    } = useUserManagement()
 
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('es-ES', {
@@ -144,8 +98,8 @@ export function UserManagement() {
                         <Shield className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{users.length + 97}</div>
-                        <p className="text-xs text-muted-foreground">+3 este mes</p>
+                        <div className="text-2xl font-bold">{userStats.total}</div>
+                        <p className="text-xs text-muted-foreground">usuarios registrados</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -154,8 +108,8 @@ export function UserManagement() {
                         <UserPlus className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
-                        <p className="text-xs text-muted-foreground">de 15 total</p>
+                        <div className="text-2xl font-bold">{userStats.agents}</div>
+                        <p className="text-xs text-muted-foreground">de {userStats.total} total</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -164,18 +118,18 @@ export function UserManagement() {
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">8</div>
-                        <p className="text-xs text-muted-foreground">agentes disponibles</p>
+                        <div className="text-2xl font-bold">{userStats.online}</div>
+                        <p className="text-xs text-muted-foreground">{userStats.onlinePercentage}% disponibles</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Nuevos Hoy</CardTitle>
+                        <CardTitle className="text-sm font-medium">Administradores</CardTitle>
                         <Plus className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2</div>
-                        <p className="text-xs text-muted-foreground">usuarios registrados</p>
+                        <div className="text-2xl font-bold">{userStats.admins}</div>
+                        <p className="text-xs text-muted-foreground">con permisos completos</p>
                     </CardContent>
                 </Card>
             </div>

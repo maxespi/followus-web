@@ -25,8 +25,8 @@ import {
   Calendar
 } from 'lucide-react'
 import { tasksService, Ticket } from '@/lib/tasks.service'
-import { TicketDetailsAdvanced } from '@/components/ticket-details-advanced'
-import { NewTicketDialog } from '@/components/new-ticket-dialog'
+import { TicketDetailsAdvanced } from './ticket-details-advanced'
+import { NewTicketDialog } from '@/components/shared'
 import { formatRelativeTime, formatDate } from '@/lib/date-utils'
 import { useTicketMetrics } from '@/hooks/use-ticket-metrics'
 

@@ -24,7 +24,7 @@ import {
   MetadataBlock,
   ActionsBlock,
   TagsBlock
-} from '@/components/ticket-blocks'
+} from './ticket-blocks'
 
 interface TicketDetailsAdvancedProps {
   ticket: Ticket | null

@@ -1,5 +1,5 @@
-import { MainLayout } from '@/components/main-layout'
-import { DashboardOverview } from '@/components/dashboard-overview'
+import { MainLayout } from '@/components/layout'
+import { DashboardOverview } from '@/components/features/dashboard'
 
 export default function HomePage() {
     return (

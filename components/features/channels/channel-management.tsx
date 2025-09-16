@@ -1,8 +1,8 @@
 // components/channel-management.tsx
 'use client'
 
-import { useState } from 'react'
 import { useTranslation } from '@/context/AppContext'
+import { useChannelManagement } from '@/hooks'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,11 +21,18 @@ import {
   Clock,
   Star
 } from 'lucide-react'
-import { mockChannels } from '@/lib/mock-data'
-
 export function ChannelManagement() {
   const { t } = useTranslation()
-  const [channels] = useState(mockChannels)
+  const {
+    channels,
+    channelStats,
+    selectedChannel,
+    setSelectedChannel,
+    getStatusColor,
+    getPriorityColor,
+    toggleChannelStatus,
+    updateChannelConfig
+  } = useChannelManagement()
 
   const getChannelIcon = (type: string) => {
     const iconMap = {
@@ -71,26 +78,26 @@ export function ChannelManagement() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Total Tickets</p>
-                      <p className="text-2xl font-bold">{channel.stats.totalTickets}</p>
+                      <p className="text-2xl font-bold">{channel.totalTickets}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Conversaciones</p>
-                      <p className="text-2xl font-bold">{channel.stats.activeConversations}</p>
+                      <p className="text-muted-foreground">Tickets Activos</p>
+                      <p className="text-2xl font-bold">{channel.activeTickets}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Tiempo de Respuesta</span>
-                      <span>{channel.stats.avgResponseTime}h</span>
+                      <span>{channel.avgResponseTime?.toFixed(1) ?? 'N/A'}h</span>
                     </div>
-                    <Progress value={(5 - channel.stats.avgResponseTime) * 20} />
+                    <Progress value={channel.avgResponseTime ? (5 - channel.avgResponseTime) * 20 : 0} />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{channel.stats.satisfactionScore}</span>
+                      <span className="text-sm font-medium">{channel.satisfactionScore?.toFixed(1) ?? 'N/A'}</span>
                     </div>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
@@ -133,16 +140,22 @@ export function ChannelManagement() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">{t('channels.autoAssign')}</span>
-                          <Switch checked={channel.settings.autoAssign} />
+                          <Switch
+                            checked={channel.configuration?.autoAssign ?? false}
+                            onCheckedChange={(checked) => updateChannelConfig(channel.id, { autoAssign: checked })}
+                          />
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">{t('channels.autoResponse')}</span>
-                          <Switch checked={channel.settings.autoResponse} />
+                          <Switch
+                            checked={channel.configuration?.notifications ?? false}
+                            onCheckedChange={(checked) => updateChannelConfig(channel.id, { notifications: checked })}
+                          />
                         </div>
                         <div>
                           <span className="text-sm font-medium">Prioridad por Defecto</span>
                           <Badge variant="outline" className="ml-2">
-                            {t(`tickets.${channel.settings.defaultPriority}`)}
+                            {channel.configuration?.priority ? t(`tickets.${channel.configuration.priority}`) : 'N/A'}
                           </Badge>
                         </div>
                       </div>
@@ -150,7 +163,7 @@ export function ChannelManagement() {
                         <div>
                           <h4 className="text-sm font-medium mb-2">{t('channels.businessHours')}</h4>
                           <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>Zona Horaria: {channel.settings.businessHours.timezone}</p>
+                            <p>Horario: {channel.configuration?.businessHours ? 'Activado' : 'Desactivado'}</p>
                             <p>Lun - Vie: 09:00 - 18:00</p>
                             <p>Fin de semana: Cerrado</p>
                           </div>
@@ -177,11 +190,11 @@ export function ChannelManagement() {
                             <span className="font-medium">{channel.name}</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
-                        {channel.stats.totalTickets} tickets
+                        {channel.totalTickets ?? 0} tickets
                       </span>
                         </div>
                         <Progress
-                            value={(channel.stats.totalTickets / Math.max(...channels.map(c => c.stats.totalTickets))) * 100}
+                            value={channel.totalTickets && channels.length > 0 ? (channel.totalTickets / Math.max(...channels.map(c => c.totalTickets || 0))) * 100 : 0}
                         />
                       </div>
                   ))}
@@ -201,7 +214,7 @@ export function ChannelManagement() {
                         </div>
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{channel.stats.satisfactionScore}</span>
+                          <span className="font-medium">{channel.satisfactionScore?.toFixed(1) ?? 'N/A'}</span>
                         </div>
                       </div>
                   ))}

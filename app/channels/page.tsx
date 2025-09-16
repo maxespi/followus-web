@@ -1,6 +1,6 @@
 // app/channels/page.tsx
-import { MainLayout } from '@/components/main-layout'
-import { ChannelManagement } from '@/components/channel-management'
+import { MainLayout } from '@/components/layout'
+import { ChannelManagement } from '@/components/features/channels'
 
 export default function ChannelsPage() {
   return (

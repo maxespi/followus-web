@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import { Language, ThemeMode } from '@/lib/types'
 import { getTranslation } from '@/lib/i18n'
-import { apiService } from '@/lib/api.service'
+import { apiService } from '@/lib/api'
 
 // Estado de la aplicación
 export interface AppState {
